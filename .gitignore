@@ -1,0 +1,16 @@
+*.pdf
+*.qpf
+*.qsf
+*.qws
+*.sdc
+*.srf
+*.cdf
+work/
+vsim.wlf
+db/
+incremental_db/
+output_files/
+*wlf*
+*rules*
+*verible*
+*pre-commit*
