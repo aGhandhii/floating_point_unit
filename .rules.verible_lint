@@ -1,0 +1,8 @@
+-explicit-parameter-storage-type
++line-length=length:100
++endif-comment
+-generate-label-prefix
+-enum-name-style
+-typedef-enums
+-unpacked-dimensions-range-ordering
+-invalid-system-task-function
