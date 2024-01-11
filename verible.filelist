@@ -1,2 +1,4 @@
 ./adder.sv
+./multiplier.sv
+./mux.sv
 ./subtractor.sv

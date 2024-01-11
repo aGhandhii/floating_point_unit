@@ -28,7 +28,6 @@ module subtractor #(
     output logic underflow;
 
     // Declare the outputs
-    assign out = a - b;
-    assign underflow = out > a;
+    assign {underflow, out} = {1'b0, a} - {1'b0, b};
 
 endmodule  // subtractor

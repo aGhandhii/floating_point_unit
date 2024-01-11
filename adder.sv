@@ -31,8 +31,6 @@ module adder #(
     logic [SIZE:0] result;
 
     // Declare the outputs
-    assign result = a + b;
-    assign out = result[SIZE-1:0];
-    assign overflow = result[SIZE];
+    assign {overflow, out} = {1'b0, a} + {1'b0, b};
 
 endmodule  // adder
