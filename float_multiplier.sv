@@ -159,7 +159,7 @@ We will use 32-bit 'float' values for testing.
 */
 module float_multiplier_tb ();
 
-    parameter DELAY = 1000;
+    parameter DELAY = 100;
 
     // IO Replication
     logic [31:0] a, b;
@@ -179,8 +179,8 @@ module float_multiplier_tb ();
     integer i;
     initial begin
 
-        $display("Testing output sign");
-        for (i = 0; i < 10; i++) begin : testSign
+        $display("Generating Input Floats");
+        for (i = 0; i < 20; i++) begin : testSign
             a = $urandom();
             b = $urandom();
             #(DELAY);
