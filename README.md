@@ -5,7 +5,7 @@ A basic Floating-Point arithmetic unit implemented in SystemVerilog
 
 ## Main Goals
 - [x] Multiplication
-    - [ ] Handle Over/Underflow appropriately
+    - [x] Handle Over/Underflow appropriately
     - [ ] Test for double format
 - [ ] Division
 - [ ] Simple Addition
