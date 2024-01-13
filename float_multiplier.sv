@@ -40,8 +40,9 @@ module float_multiplier #(
     output logic overflow, underflow, inexact;
 
     // Store the bias in the appropriate bitlength for later calculations
-    logic [EXPONENT_SIZE-1:0] bias;
-    assign bias = BIAS[EXPONENT_SIZE-1:0];
+    // We add extra bits to check for over/underflow
+    logic [EXPONENT_SIZE+1:0] bias;
+    assign bias = BIAS[EXPONENT_SIZE+1:0];
 
     // Float Components for inputs and output
     logic sign_a, sign_b, sign_out;
@@ -71,12 +72,11 @@ module float_multiplier #(
     // mantissa such that the result remains in normalized format (1.M)
 
     // Intermediate logic
-    logic [EXPONENT_SIZE-1:0] exponentAdd_o, biasSub_o, exponentShiftMux_o;
+    logic [EXPONENT_SIZE+1:0] exponentAdd_o, biasSub_o, exponentShiftMux_o;
     logic [((MANTISSA_SIZE+1)*2)-1:0] mantissaMult_o;
-    logic [1:0] adder_overflow;
 
     // Declare mux input ports
-    logic [EXPONENT_SIZE-1:0] exponentShiftMux_i[1:0];
+    logic [EXPONENT_SIZE+1:0] exponentShiftMux_i[1:0];
     assign exponentShiftMux_i[0] = 0;
     assign exponentShiftMux_i[1] = 1;
     logic [MANTISSA_SIZE-1:0] calcMantissaMux_i[1:0];
@@ -84,30 +84,14 @@ module float_multiplier #(
     assign calcMantissaMux_i[1] = mantissaMult_o[(2*MANTISSA_SIZE):MANTISSA_SIZE+1];
 
     // CALCULATE EXPONENT
-    adder #(
-        .SIZE(EXPONENT_SIZE)
-    ) exponentAdd (
-        .a(exponent_a),
-        .b(exponent_b),
-        .out(exponentAdd_o),
-        .overflow(adder_overflow[0])
-    );
-    subtractor #(
-        .SIZE(EXPONENT_SIZE)
-    ) biasSub (
-        .a(exponentAdd_o),
-        .b(bias),
-        .out(biasSub_o),
-        .underflow(underflow)
-    );
-    adder #(
-        .SIZE(EXPONENT_SIZE)
-    ) calcExponent (
-        .a(biasSub_o),
-        .b(exponentShiftMux_o),
-        .out(exponent_out),
-        .overflow(adder_overflow[1])
-    );
+    // Add the exponents - extra 2 bits to prevent overflow
+    assign exponentAdd_o = {2'b00, exponent_a} + {2'b00, exponent_b};
+
+    // Subtract the bias from the result
+    assign biasSub_o = exponentAdd_o - bias;
+
+    // Adjust exponent as needed and check for over/underflow
+    assign {underflow, overflow, exponent_out} = biasSub_o + exponentShiftMux_o;
 
     // CALCULATE MANTISSA
     multiplier #(
@@ -118,7 +102,7 @@ module float_multiplier #(
         .out(mantissaMult_o)
     );
     mux #(
-        .DATA_SIZE  (EXPONENT_SIZE),
+        .DATA_SIZE  (EXPONENT_SIZE + 2),
         .SELECT_SIZE(1)
     ) exponentShiftMux (
         .in  (exponentShiftMux_i),
@@ -137,8 +121,6 @@ module float_multiplier #(
 
     // Set control signals
     always_comb begin
-        overflow = adder_overflow[0] | adder_overflow[1];
-
         // Check if truncation occurred in multiplier result
         if (mantissaMult_o[((MANTISSA_SIZE+1)*2)-1]) begin
             // MSB is a 1, check the bottom half bits
@@ -180,7 +162,7 @@ module float_multiplier_tb ();
     initial begin
 
         $display("Generating Input Floats");
-        for (i = 0; i < 20; i++) begin : testSign
+        for (i = 0; i < 100; i++) begin : testSign
             a = $urandom();
             b = $urandom();
             #(DELAY);
