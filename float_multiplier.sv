@@ -72,6 +72,7 @@ module float_multiplier #(
     // mantissa such that the result remains in normalized format (1.M)
 
     // Intermediate logic
+    logic flow_bit;
     logic [EXPONENT_SIZE+1:0] exponentAdd_o, biasSub_o, exponentShiftMux_o;
     logic [((MANTISSA_SIZE+1)*2)-1:0] mantissaMult_o;
 
@@ -91,16 +92,11 @@ module float_multiplier #(
     assign biasSub_o = exponentAdd_o - bias;
 
     // Adjust exponent as needed and check for over/underflow
-    assign {underflow, overflow, exponent_out} = biasSub_o + exponentShiftMux_o;
+    assign {underflow, flow_bit, exponent_out} = biasSub_o + exponentShiftMux_o;
+    assign overflow = flow_bit & ~underflow;
 
     // CALCULATE MANTISSA
-    multiplier #(
-        .SIZE(MANTISSA_SIZE + 1)
-    ) mantissaMult (
-        .a  ({1'b1, mantissa_a}),
-        .b  ({1'b1, mantissa_b}),
-        .out(mantissaMult_o)
-    );
+    assign mantissaMult_o = {1'b1, mantissa_a} * {1'b1, mantissa_b};
     mux #(
         .DATA_SIZE  (EXPONENT_SIZE + 2),
         .SELECT_SIZE(1)
