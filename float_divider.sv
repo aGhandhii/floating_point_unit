@@ -116,3 +116,43 @@ module float_divider #(
     );
 
 endmodule  // float_divider
+
+
+/* Testbench for the float divider
+
+We will use 32-bit 'float' values for testing.
+*/
+module float_divider_tb ();
+
+    parameter DELAY = 100;
+
+    // IO Replication
+    logic [31:0] a, b;
+    logic [31:0] out;
+    logic overflow, underflow, inexact;
+
+    float_divider #(
+        .FLOAT_SIZE(32),
+        .EXPONENT_SIZE(8),
+        .MANTISSA_SIZE(23),
+        .BIAS(127)
+    ) dut (
+        .*
+    );
+
+    // Test
+    integer i;
+    initial begin
+
+        $display("Generating Input Floats");
+        for (i = 0; i < 100; i++) begin : testSign
+            a = $urandom();
+            b = $urandom();
+            #(DELAY);
+            assert (out[31] == a[31] ^ b[31]);
+        end
+
+        $stop();
+    end
+
+endmodule  // float_divider_tb
