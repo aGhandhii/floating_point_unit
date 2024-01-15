@@ -7,9 +7,12 @@ A basic Floating-Point arithmetic unit implemented in SystemVerilog
 - [x] Multiplication
     - [x] Handle Over/Underflow appropriately
     - [ ] Test for double format
-- [ ] Division
-- [ ] Simple Addition
-- [ ] Simple Subtraction
+- [x] Division
+    - [ ] Implement 'inexact' detection
+    - [x] Handle Over/Underflow appropriately
+    - [ ] Test for double format
+- [ ] Addition
+- [ ] Subtraction
 
 *Special characters, NaN, and Infinities will not be initially handled*
  - This will be implemented in a separate control unit once main arithmetic units are established

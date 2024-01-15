@@ -66,7 +66,11 @@ module float_divider #(
 
     // Intermediate Logic for exponent/mantissa calculations
     logic [EXPONENT_SIZE+1:0] exponentSub_o, biasAdd_o, exponentShiftMux_o;
-    logic [MANTISSA_SIZE-1:0] mantissaDiv_o;  // Double-check the size
+    // Needed to double the length of mantissa and normal bit for division
+    logic [MANTISSA_SIZE-1:0] mantissa_a_extension;
+    assign mantissa_a_extension = 0;
+    // The quotient will be contained in the lower bits
+    logic [(2*(MANTISSA_SIZE+1))-1:0] mantissaDiv_o;
     logic flow_bit;
 
     // Mux for normalization decrement to exponent
@@ -75,8 +79,8 @@ module float_divider #(
     assign exponentShiftMux_i[1] = 1;
     // If decrementing the exponent, we also mux to shift the mantissa
     logic [MANTISSA_SIZE-1:0] mantissaShiftMux_i[1:0];
-    assign mantissaShiftMux_i[0] = mantissaDiv_o;
-    assign mantissaShiftMux_i[1] = {mantissaDiv_o[MANTISSA_SIZE-3:0], 1'b0};
+    assign mantissaShiftMux_i[0] = mantissaDiv_o[MANTISSA_SIZE-1:0];
+    assign mantissaShiftMux_i[1] = {mantissaDiv_o[MANTISSA_SIZE-2:0], 1'b0};
 
     // CALCULATE EXPONENT
     // Subtract the exponents and re-add the bias
@@ -84,7 +88,7 @@ module float_divider #(
     assign biasAdd_o = exponentSub_o + bias;
 
     // Adjust the exponent if needed, also check for over/underflow
-    assign {underflow, flow_bit, exponent_out} = biasAdd_o + exponentShiftMux_o;
+    assign {underflow, flow_bit, exponent_out} = biasAdd_o - exponentShiftMux_o;
     assign overflow = flow_bit & ~underflow;
 
     // CALCULATE MANTISSA
@@ -92,18 +96,22 @@ module float_divider #(
     // When dividing the mantissas, since the floating-point values are in
     // normalized format, their values range in [1, 2), so the quotient is
     // fixed in the range 0.5 < q < 2.
+    //
+    // Our first mantissa is extended with MANTISSA_SIZE extra zeroes so that
+    // our division result can store the quotient in its lower bits.
+    //
     // Because of this, we can gurantee that either the MSB or MSB-1 of the
-    // quotient will be a 1. In the case that the MSB is a zero, we need to
-    // decrement the exponent by 1, and perform a left-shift on the mantissa
-    // to normalize the result. Otherwise, we can leave the exponent and
-    // quotient as-is.
-    assign mantissaDiv_o = {1'b1, mantissa_a} / {1'b1, mantissa_b};
+    // quotient's lower bits will be a 1. In the case that the MSB is a zero,
+    // we need to decrement the exponent by 1, and perform a left-shift on the
+    // mantissa to normalize the result. Otherwise, we can leave the exponent
+    // and quotient as-is.
+    assign mantissaDiv_o = {1'b1, mantissa_a, mantissa_a_extension} / {1'b1, mantissa_b};
     mux #(
         .DATA_SIZE  (EXPONENT_SIZE + 2),
         .SELECT_SIZE(1)
     ) exponentShiftMux (
         .in  (exponentShiftMux_i),
-        .port(~mantissaDiv_o[MANTISSA_SIZE-2]),
+        .port(~mantissaDiv_o[MANTISSA_SIZE]),
         .out (exponentShiftMux_o)
     );
     mux #(
@@ -111,7 +119,7 @@ module float_divider #(
         .SELECT_SIZE(1)
     ) mantissaShiftMux (
         .in  (mantissaShiftMux_i),
-        .port(~mantissaDiv_o[MANTISSA_SIZE-2]),
+        .port(~mantissaDiv_o[MANTISSA_SIZE]),
         .out (mantissa_out)
     );
 
@@ -151,6 +159,14 @@ module float_divider_tb ();
             #(DELAY);
             assert (out[31] == a[31] ^ b[31]);
         end
+
+        $display("Testing Specific Values");
+        a = 32'b0_01111111_00000000000000000000000;  // 1b 1d
+        b = 32'b0_01111111_00000000000000000000000;  // 1b 1d
+        #(DELAY);
+        a = 32'b0_01111111_11110000000000000000000;  // 1.1111b 1.9375d
+        b = 32'b0_01111111_00000000000000000000000;  // 1b 1d
+        #(DELAY);
 
         $stop();
     end
