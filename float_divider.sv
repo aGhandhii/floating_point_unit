@@ -158,15 +158,40 @@ module float_divider_tb ();
             b = $urandom();
             #(DELAY);
             assert (out[31] == a[31] ^ b[31]);
+            $display("a: %e\nb: %e", $bitstoshortreal(a), $bitstoshortreal(b));
+            if (overflow | underflow) begin
+                $display("%s%s", overflow ? "OVERFLOW " : "",
+                         underflow ? "UNDERFLOW" : "");
+            end else begin
+                $display("a*b: %e", $bitstoshortreal(out));
+                $display("%s", inexact ? "Inexact Value" : "");
+            end
         end
 
         $display("Testing Specific Values");
         a = 32'b0_01111111_00000000000000000000000;  // 1b 1d
         b = 32'b0_01111111_00000000000000000000000;  // 1b 1d
         #(DELAY);
+        $display("a: %e\nb: %e", $bitstoshortreal(a), $bitstoshortreal(b));
+        if (overflow | underflow) begin
+            $display("%s%s", overflow ? "OVERFLOW " : "",
+                     underflow ? "UNDERFLOW" : "");
+        end else begin
+            $display("a*b: %e", $bitstoshortreal(out));
+            $display("%s", inexact ? "Inexact Value" : "");
+        end
+
         a = 32'b0_01111111_11110000000000000000000;  // 1.1111b 1.9375d
         b = 32'b0_01111111_00000000000000000000000;  // 1b 1d
         #(DELAY);
+        $display("a: %e\nb: %e", $bitstoshortreal(a), $bitstoshortreal(b));
+        if (overflow | underflow) begin
+            $display("%s%s", overflow ? "OVERFLOW " : "",
+                     underflow ? "UNDERFLOW" : "");
+        end else begin
+            $display("a*b: %e", $bitstoshortreal(out));
+            $display("%s", inexact ? "Inexact Value" : "");
+        end
 
         $stop();
     end

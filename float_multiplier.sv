@@ -115,9 +115,8 @@ module float_multiplier #(
     );
 
 
-    // Set control signals
+    // Check for an inexact result
     always_comb begin
-        // Check if truncation occurred in multiplier result
         if (mantissaMult_o[((MANTISSA_SIZE+1)*2)-1]) begin
             // MSB is a 1, check the bottom half bits
             inexact = (mantissaMult_o[MANTISSA_SIZE:0] != 0);
@@ -157,12 +156,19 @@ module float_multiplier_tb ();
     integer i;
     initial begin
 
-        $display("Generating Input Floats");
         for (i = 0; i < 100; i++) begin : testSign
             a = $urandom();
             b = $urandom();
             #(DELAY);
             assert (out[31] == a[31] ^ b[31]);
+            $display("a: %e\nb: %e", $bitstoshortreal(a), $bitstoshortreal(b));
+            if (overflow | underflow) begin
+                $display("%s%s", overflow ? "OVERFLOW " : "",
+                         underflow ? "UNDERFLOW" : "");
+            end else begin
+                $display("a*b: %e", $bitstoshortreal(out));
+                $display("%s", inexact ? "Inexact Value" : "");
+            end
         end
 
         $stop();
