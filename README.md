@@ -9,7 +9,7 @@ A Floating-Point Arithmetic Unit implemented in SystemVerilog
 - [x] Division
     - [ ] Implement 'inexact' detection
     - [x] Handle Over/Underflow appropriately
-    - [ ] Test for double format
+    - [x] Test for double format
 - [x] Addition + Subtraction
     - [x] Sign Unit
     - [x] Right Shifter
