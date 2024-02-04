@@ -175,6 +175,7 @@ module float_multiplier_tb ();
         .underflow(underflow_dp),
         .inexact(inexact_dp)
     );
+
     // Test
     integer i;
     initial begin
