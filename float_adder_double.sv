@@ -1,15 +1,15 @@
 // Author: Alex Ghandhi
 
-/* Single-Precision Floating-Point Multiplier Unit
+/* Double-Precision Floating-Point Multiplier Unit
 
-Calculates the sum of two 32-bit normalized floats
+Calculates the sum of two 64-bit normalized floats
 
 Inputs:
-    a: first input float
-    b: second input float
+    a: first input double
+    b: second input double
 
 Outputs:
-    out: sum of input floats
+    out: sum of input doubles
     inexact: raised if truncation occurred
     overflow: raised if overflow occurred
     underflow: raised if underflow occurred
@@ -21,11 +21,11 @@ Parameters:
     MANTISSA_SIZE: bit-length of mantissa portion
     BIAS: bias for exponent
 */
-module float_adder #(
-    parameter FLOAT_SIZE = 32,
-    EXPONENT_SIZE = 8,
-    MANTISSA_SIZE = 23,
-    BIAS = 127
+module float_adder_double #(
+    parameter FLOAT_SIZE = 64,
+    EXPONENT_SIZE = 11,
+    MANTISSA_SIZE = 52,
+    BIAS = 1023
 ) (
     a,
     b,
@@ -35,7 +35,6 @@ module float_adder #(
     inexact,
     zero
 );
-
     // IO Declaration
     input logic [FLOAT_SIZE-1:0] a, b;
     output logic [FLOAT_SIZE-1:0] out;
@@ -70,7 +69,7 @@ module float_adder #(
     logic [MANTISSA_SIZE+1:0] mantissa_x, mantissa_y;
 
     // Logic for Leading Zero fix
-    logic [5:0] leadingZeros, leadingZeros_raw;
+    logic [6:0] leadingZeros, leadingZeros_raw;
 
     // Simple Control Signal Definitions
     assign inexact = |inexact_portions;  // OR the bits together
@@ -112,8 +111,8 @@ module float_adder #(
     assign overflow = E_m_add[EXPONENT_SIZE];
 
     // Final adjustment (handle leading zeros for mantissa subtraction)
-    // Currently set for Single-Precision values
-    assign {underflow, exponent_out} = E_m_add - {3'b000, leadingZeros};
+    // Specifically set for Double-Precision values
+    assign {underflow, exponent_out} = E_m_add - {5'b00000, leadingZeros};
 
     ///////////////////////////
     // MANTISSA CALCULATIONS //
@@ -177,15 +176,15 @@ module float_adder #(
             mantissa_sub = mantissa_y[MANTISSA_SIZE:0] - mantissa_x[MANTISSA_SIZE:0];
     end
 
-    // SINGLE-PRECISION Specific: handle leading zero fix
-    // This assumes that MANTISSA_SIZE = 23
+    // DOUBLE-PRECISION Specific: handle leading zero fix
+    // This assumes that MANTISSA_SIZE = 52
     // Note that we pad the input to hit the bitlength, this is subtracted
     // when setting the leadingZeros value
-    clz_32 leadingZeroCounter (
-        .in ({8'b0000_0000, mantissa_sub}),
+    clz_64 leadingZeroCounter (
+        .in ({11'b000_0000_0000, mantissa_sub}),
         .out(leadingZeros_raw)
     );
-    assign leadingZeros = sameSign ? 0 : leadingZeros_raw - 6'd8;
+    assign leadingZeros = sameSign ? 0 : leadingZeros_raw - 7'd11;
 
     // Left-shift adjustment for subtraction
     assign mantissa_sub_ready = mantissa_sub << leadingZeros;
@@ -199,50 +198,54 @@ module float_adder #(
         else mantissa_out = mantissa_sub_ready[MANTISSA_SIZE-1:0];
     end
 
-endmodule  // float_adder
+endmodule  // float_adder_double
 
 
-// Testbench for Single-Precision Floats
-module float_adder_tb ();
+// Testbench for Double-Precision Floats
+module float_adder_double_tb ();
 
     parameter DELAY = 100;
 
     // IO Replication
-    logic [31:0] a, b, out;
+    logic [63:0] a, b, out;
     logic overflow, underflow, inexact, zero;
 
     // Instance
-    float_adder dut (.*);
+    float_adder_double dut (.*);
 
     // Main Test
     integer i;
     initial begin
 
-        // Fully Randomized Float Inputs
+        // Fully Randomized Double Inputs
         for (i = 0; i < 30; i++) begin : randomTesting
-            a = $urandom();
-            b = $urandom();
+            a[63:32] = $urandom();
+            a[31:0]  = $urandom();
+            b[63:32] = $urandom();
+            b[31:0]  = $urandom();
             #(DELAY);
-            $display("a: %e\nb: %e", $bitstoshortreal(a), $bitstoshortreal(b));
-            $display("a+b: %e", $bitstoshortreal(out));
+            $display("a: %e\nb: %e", $bitstoreal(a), $bitstoreal(b));
+            $display("a+b: %e", $bitstoreal(out));
             $display("%s%s%s%s", overflow ? "OVERFLOW " : "",
                      underflow ? "UNDERFLOW" : "", zero ? "ZERO" : "",
                      inexact ? "INEXACT" : "");
         end
 
         // Fix the exponent for precise testing
-        a[30:23] = 8'd134;
-        b[30:23] = 8'd134;
+        a[62:52] = 11'd1023;
+        b[62:52] = 11'd1023;
         for (i = 0; i < 20; i++) begin : zeroExponent
             // Mix the Sign
-            a[31]   = $urandom();
-            b[31]   = $urandom();
+            a[63] = $urandom();
+            b[63] = $urandom();
             // Mix the Mantissas
-            a[22:0] = $urandom();
-            b[22:0] = $urandom();
+            a[51:32] = $urandom();
+            a[31:0] = $urandom();
+            b[51:32] = $urandom();
+            b[31:0] = $urandom();
             #(DELAY);
-            $display("a: %e\nb: %e", $bitstoshortreal(a), $bitstoshortreal(b));
-            $display("a+b: %e", $bitstoshortreal(out));
+            $display("a: %e\nb: %e", $bitstoreal(a), $bitstoreal(b));
+            $display("a+b: %e", $bitstoreal(out));
             $display("%s%s%s%s", overflow ? "OVERFLOW " : "",
                      underflow ? "UNDERFLOW" : "", zero ? "ZERO" : "",
                      inexact ? "INEXACT" : "");
@@ -250,8 +253,9 @@ module float_adder_tb ();
 
         // Test Zero Flag
         for (i = 0; i < 20; i++) begin : testZero
-            a = $urandom();
-            b = a ^ (32'd1 << 31);
+            a[63:32] = $urandom();
+            a[31:0] = $urandom();
+            b = a ^ (64'd1 << 63);
             #(DELAY);
             assert (zero);
         end
@@ -259,4 +263,4 @@ module float_adder_tb ();
         $stop();
     end
 
-endmodule  // float_adder_tb
+endmodule  // float_adder_double_tb
