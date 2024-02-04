@@ -132,43 +132,109 @@ endmodule  // float_multiplier
 
 /* Testbench for the float multiplier
 
-We will use 32-bit 'float' values for testing.
+Tests both 32-bit 'Single' and 64-bit 'Double' floating point precisions
 */
 module float_multiplier_tb ();
 
     parameter DELAY = 100;
 
-    // IO Replication
-    logic [31:0] a, b;
-    logic [31:0] out;
-    logic overflow, underflow, inexact;
+    // IO Replication, single-precision
+    logic [31:0] a_sp, b_sp;
+    logic [31:0] out_sp;
+    logic overflow_sp, underflow_sp, inexact_sp;
 
     float_multiplier #(
         .FLOAT_SIZE(32),
         .EXPONENT_SIZE(8),
         .MANTISSA_SIZE(23),
         .BIAS(127)
-    ) dut (
-        .*
+    ) dut_sp (
+        .a(a_sp),
+        .b(b_sp),
+        .out(out_sp),
+        .overflow(overflow_sp),
+        .underflow(underflow_sp),
+        .inexact(inexact_sp)
     );
 
+    // IO Replication, double-precision
+    logic [63:0] a_dp, b_dp;
+    logic [63:0] out_dp;
+    logic overflow_dp, underflow_dp, inexact_dp;
+
+    float_multiplier #(
+        .FLOAT_SIZE(64),
+        .EXPONENT_SIZE(11),
+        .MANTISSA_SIZE(52),
+        .BIAS(1023)
+    ) dut_dp (
+        .a(a_dp),
+        .b(b_dp),
+        .out(out_dp),
+        .overflow(overflow_dp),
+        .underflow(underflow_dp),
+        .inexact(inexact_dp)
+    );
     // Test
     integer i;
     initial begin
 
-        for (i = 0; i < 100; i++) begin : testSign
-            a = $urandom();
-            b = $urandom();
+        $display("TESTING SINGLE-PRECISION VALUES");
+        for (i = 0; i < 20; i++) begin : testSinglePrecision
+            a_sp = $urandom();
+            b_sp = $urandom();
             #(DELAY);
-            assert (out[31] == a[31] ^ b[31]);
-            $display("a: %e\nb: %e", $bitstoshortreal(a), $bitstoshortreal(b));
-            if (overflow | underflow) begin
-                $display("%s%s", overflow ? "OVERFLOW " : "",
-                         underflow ? "UNDERFLOW" : "");
-            end else begin
-                $display("a*b: %e", $bitstoshortreal(out));
-                $display("%s", inexact ? "Inexact Value" : "");
+            assert (out_sp[31] == a_sp[31] ^ b_sp[31]);
+            $display("a: %e\nb: %e\na*b: %e", $bitstoshortreal(a_sp),
+                     $bitstoshortreal(b_sp), $bitstoshortreal(out_sp));
+            if (overflow_sp | underflow_sp | inexact_sp) begin
+                $display("%s%s%s", overflow_sp ? "OVERFLOW " : "",
+                         underflow_sp ? "UNDERFLOW" : " ",
+                         inexact_sp ? "INEXACT" : "");
             end
+        end
+
+        $display("\nTEST MULTIPLY BY 1 FOR SINGLE PRECISION\n");
+        for (i = 0; i < 10; i++) begin : multByOneSingle
+            a_sp = $urandom();
+            b_sp = 32'b0_01111111_00000000000000000000000;
+            #(DELAY);
+            assert (out_sp == a_sp);
+            a_sp = 32'b0_01111111_00000000000000000000000;
+            b_sp = $urandom();
+            #(DELAY);
+            assert (out_sp == b_sp);
+        end
+
+        $display("TESTING DOUBLE-PRECISION VALUES");
+        for (i = 0; i < 20; i++) begin : testDoublePrecision
+            a_dp[63:32] = $urandom();
+            a_dp[31:0]  = $urandom();
+            b_dp[63:32] = $urandom();
+            b_dp[31:0]  = $urandom();
+            #(DELAY);
+            assert (out_dp[63] == a_dp[63] ^ b_dp[63]);
+            $display("a: %e\nb: %e\na*b: %e", $bitstoreal(a_dp),
+                     $bitstoreal(b_dp), $bitstoreal(out_dp));
+            if (overflow_dp | underflow_dp | inexact_dp) begin
+                $display("%s%s%s", overflow_dp ? "OVERFLOW " : "",
+                         underflow_dp ? "UNDERFLOW" : " ",
+                         inexact_dp ? "INEXACT" : "");
+            end
+        end
+
+        $display("\nTEST MULTIPLY BY 1 FOR DOUBLE PRECISION");
+        for (i = 0; i < 10; i++) begin : multByOneDouble
+            a_dp[63:32] = $urandom();
+            a_dp[31:0] = $urandom();
+            b_dp = 64'b0_01111111111_0000000000000000000000000000000000000000000000000000;
+            #(DELAY);
+            assert (out_dp == a_dp);
+            a_dp = 64'b0_01111111111_0000000000000000000000000000000000000000000000000000;
+            b_dp[63:32] = $urandom();
+            b_dp[31:0] = $urandom();
+            #(DELAY);
+            assert (out_dp == b_dp);
         end
 
         $stop();
