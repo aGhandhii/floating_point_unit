@@ -61,7 +61,9 @@ module float_divider #(
     assign mantissa_a = a[MANTISSA_SIZE-1:0];
     assign mantissa_b = b[MANTISSA_SIZE-1:0];
 
-    // CALCULATE SIGN
+    ////////////////////
+    // CALCULATE SIGN //
+    ////////////////////
     xor getSign (sign_out, sign_a, sign_b);
 
     // Intermediate Logic for exponent/mantissa calculations
@@ -82,7 +84,10 @@ module float_divider #(
     assign mantissaShiftMux_i[0] = mantissaDiv_o[MANTISSA_SIZE-1:0];
     assign mantissaShiftMux_i[1] = {mantissaDiv_o[MANTISSA_SIZE-2:0], 1'b0};
 
-    // CALCULATE EXPONENT
+    ////////////////////////
+    // CALCULATE EXPONENT //
+    ////////////////////////
+
     // Subtract the exponents and re-add the bias
     assign exponentSub_o = {2'b00, exponent_a} - {2'b00, exponent_b};
     assign biasAdd_o = exponentSub_o + bias;
@@ -91,7 +96,9 @@ module float_divider #(
     assign {underflow, flow_bit, exponent_out} = biasAdd_o - exponentShiftMux_o;
     assign overflow = flow_bit & ~underflow;
 
-    // CALCULATE MANTISSA
+    ////////////////////////
+    // CALCULATE MANTISSA //
+    ////////////////////////
 
     // When dividing the mantissas, since the floating-point values are in
     // normalized format, their values range in [1, 2), so the quotient is
@@ -106,6 +113,7 @@ module float_divider #(
     // mantissa to normalize the result. Otherwise, we can leave the exponent
     // and quotient as-is.
     assign mantissaDiv_o = {1'b1, mantissa_a, mantissa_a_extension} / {1'b1, mantissa_b};
+    assign inexact = (({1'b1, mantissa_a, mantissa_a_extension} % {1'b1, mantissa_b}) != 0);
     mux #(
         .DATA_SIZE  (EXPONENT_SIZE + 2),
         .SELECT_SIZE(1)

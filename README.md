@@ -2,12 +2,12 @@
 
 A Floating-Point Arithmetic Unit implemented in SystemVerilog
 
-## Main Goals
+## Main Operations
 - [x] Multiplication
     - [x] Handle Over/Underflow appropriately
     - [x] Test for double format
 - [x] Division
-    - [ ] Implement 'inexact' detection
+    - [x] Implement 'inexact' detection
     - [x] Handle Over/Underflow appropriately
     - [x] Test for double format
 - [x] Addition + Subtraction
@@ -18,7 +18,13 @@ A Floating-Point Arithmetic Unit implemented in SystemVerilog
     - [x] Single Precision Unit
     - [x] Double Precision Unit
 
-*Special characters, NaN, and Infinities will not be initially handled*
- - This will be implemented in a separate control unit once main arithmetic units are established
+*Special characters, NaN, and Infinities are not handled in individual units*
 
-*Rounding will be implemented by trunctation, if digits are lost a control signal will be raised*
+*Rounding is implemented by trunctation, if bits are lost a control signal is raised*
+
+## Control Unit
+- [ ] Detect Zero, Infinity, NaN
+- [ ] Operation Selection
+- [ ] Handle Special Input Cases
+- [ ] Single-Precision
+- [ ] Double-Precision
