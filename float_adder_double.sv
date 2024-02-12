@@ -9,17 +9,17 @@ Inputs:
     b: second input double
 
 Outputs:
-    out: sum of input doubles
-    inexact: raised if truncation occurred
-    overflow: raised if overflow occurred
-    underflow: raised if underflow occurred
-    zero: raised if result is zero
+    out:        sum of input doubles
+    inexact:    raised if truncation occurred
+    overflow:   raised if overflow occurred
+    underflow:  raised if underflow occurred
+    zero:       raised if result is zero
 
 Parameters:
-    FLOAT_SIZE: bit-length of floating point value
-    EXPONENT_SIZE: bit-length of exponent portion
-    MANTISSA_SIZE: bit-length of mantissa portion
-    BIAS: bias for exponent
+    FLOAT_SIZE:     bit-length of floating point value
+    EXPONENT_SIZE:  bit-length of exponent portion
+    MANTISSA_SIZE:  bit-length of mantissa portion
+    BIAS:           bias for exponent
 */
 module float_adder_double #(
     parameter FLOAT_SIZE = 64,

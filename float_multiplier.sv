@@ -9,16 +9,16 @@ Inputs:
     b: second input float
 
 Outputs:
-    out: product of input floats
-    overflow: raised if overflow occurred
-    underflow: raised if underflow occurred
-    inexact: raised if truncation occurred
+    out:        product of input floats
+    overflow:   raised if overflow occurred
+    underflow:  raised if underflow occurred
+    inexact:    raised if truncation occurred
 
 Parameters:
-    FLOAT_SIZE: bit-length of floating point value
-    EXPONENT_SIZE: bit-length of exponent portion
-    MANTISSA_SIZE: bit-length of mantissa portion
-    BIAS: bias for exponent
+    FLOAT_SIZE:     bit-length of floating point value
+    EXPONENT_SIZE:  bit-length of exponent portion
+    MANTISSA_SIZE:  bit-length of mantissa portion
+    BIAS:           bias for exponent
 */
 module float_multiplier #(
     parameter FLOAT_SIZE,
