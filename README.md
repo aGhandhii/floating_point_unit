@@ -20,11 +20,12 @@ A Floating-Point Arithmetic Unit implemented in SystemVerilog
 
 *Special characters, NaN, and Infinities are not handled in individual units*
 
-*Rounding is implemented by trunctation, if bits are lost a control signal is raised*
+*Rounding is implemented by truncation*
 
 ## Control Unit
-- [ ] Detect Zero, Infinity, NaN
-- [ ] Operation Selection
-- [ ] Handle Special Input Cases
+- [x] Detect Zero, Infinity, NaN
+- [x] Operation Selection
+- [x] Handle Special Input Cases
+- [ ] Additional Over/Underflow Handling
 - [ ] Single-Precision
 - [ ] Double-Precision
