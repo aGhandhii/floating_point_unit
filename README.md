@@ -26,6 +26,6 @@ A Floating-Point Arithmetic Unit implemented in SystemVerilog
 - [x] Detect Zero, Infinity, NaN
 - [x] Operation Selection
 - [x] Handle Special Input Cases
-- [ ] Additional Over/Underflow Handling
-- [ ] Single-Precision
+- [x] Additional Over/Underflow Handling
+- [x] Single-Precision
 - [ ] Double-Precision

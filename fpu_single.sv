@@ -162,10 +162,12 @@ module fpu_single (
                 overflow  = 0;
                 underflow = 0;
             end else begin  // No special values, output Adder results
-                out       = add_o;
                 inexact   = add_inexact;
                 overflow  = add_overflow;
                 underflow = add_underflow;
+                if (add_overflow) out = {add_o[31], INFINITY_FLOAT_NO_SIGN};
+                else if (add_underflow) out = {add_o[31], ZERO_FLOAT_NO_SIGN};
+                else out = add_o;
             end
         end else if (opcode == MUL) begin  // MULTIPLICATION
             if (A_is_NaN | B_is_NaN) begin
@@ -192,10 +194,12 @@ module fpu_single (
                 overflow  = 0;
                 underflow = 0;
             end else begin  // No Special Values, use Multiplier outputs
-                out       = mul_o;
                 inexact   = mul_inexact;
                 overflow  = mul_overflow;
                 underflow = mul_underflow;
+                if (mul_overflow) out = {mul_o[31], INFINITY_FLOAT_NO_SIGN};
+                else if (mul_underflow) out = {mul_o[31], ZERO_FLOAT_NO_SIGN};
+                else out = mul_o;
             end
         end else if (opcode == DIV) begin  // DIVISION
             if (A_is_NaN | B_is_NaN) begin
@@ -240,15 +244,15 @@ module fpu_single (
                 overflow  = 0;
                 underflow = 0;
             end else begin  // No Special Values, use Divider Unit Outputs
-                out       = div_o;
                 inexact   = div_inexact;
                 overflow  = div_overflow;
                 underflow = div_underflow;
+                if (div_overflow) out = {div_o[31], INFINITY_FLOAT_NO_SIGN};
+                else if (div_underflow) out = {div_o[31], ZERO_FLOAT_NO_SIGN};
+                else out = div_o;
             end
         end
     end  // Handle Special Values for each operation
-
-
 
 endmodule  // fpu_single
 
@@ -376,6 +380,35 @@ module fpu_single_tb ();
         assert (out == {1'b0, ZERO_FLOAT_NO_SIGN});
         a = 32'd123;
         #(DELAY);
+
+        $display("TEST ADD/SUB UNDERFLOW");
+        a = 32'b0_00000000_01111111111111111111111;
+        b = 32'b0_00000000_10000000000000000000000;
+        opcode = SUB;
+        #(DELAY);
+        assert (out == {1'b1, ZERO_FLOAT_NO_SIGN} && underflow);
+
+        $display("TEST MUL OVERFLOW/UNDERFLOW");
+        opcode = MUL;
+        a = 32'b0_11111110_01111111111111111111111;
+        b = 32'b0_10000010_10000000000000000000000;
+        #(DELAY);
+        assert (out == {1'b0, INFINITY_FLOAT_NO_SIGN} && overflow);
+        a = 32'b0_00000000_01111111111111111111111;
+        b = 32'b0_00001111_10000000000000000000000;
+        #(DELAY);
+        assert (out == {1'b0, ZERO_FLOAT_NO_SIGN} && underflow);
+
+        $display("TEST DIV OVERFLOW/UNDERFLOW");
+        opcode = DIV;
+        a = 32'b0_11111000_01111111111111111111111;
+        b = 32'b0_00000000_10000000000000000000000;
+        #(DELAY);
+        assert (out == {1'b0, INFINITY_FLOAT_NO_SIGN} && overflow);
+        a = 32'b0_00000000_01111111111111111111111;
+        b = 32'b0_11111110_10000000000000000000000;
+        #(DELAY);
+        assert (out == {1'b0, ZERO_FLOAT_NO_SIGN} && underflow);
 
         $stop();
     end  // Test
