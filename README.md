@@ -28,4 +28,4 @@ A Floating-Point Arithmetic Unit implemented in SystemVerilog
 - [x] Handle Special Input Cases
 - [x] Additional Over/Underflow Handling
 - [x] Single-Precision
-- [ ] Double-Precision
+- [x] Double-Precision

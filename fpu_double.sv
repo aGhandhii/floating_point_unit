@@ -34,7 +34,7 @@ module fpu_double (
     // Useful Constants
     parameter NAN_FLOAT              = 64'b0_11111111111_1111111111111111111111111111111111111111111111111111;
     parameter ZERO_FLOAT_NO_SIGN     = 63'b00000000000_0000000000000000000000000000000000000000000000000000;
-    parameter INFINITY_FLOAT_NO_SIGN = 63'b11111111000_0000000000000000000000000000000000000000000000000000;
+    parameter INFINITY_FLOAT_NO_SIGN = 63'b11111111111_0000000000000000000000000000000000000000000000000000;
 
     // IO Declaration
     input logic [63:0] a, b;
@@ -255,3 +255,162 @@ module fpu_double (
     end  // Handle Special Values for each operation
 
 endmodule  // fpu_double
+
+
+// Top-Level Testbench, Double Precision
+module fpu_double_tb ();
+
+    // Useful Constants
+    parameter NAN_FLOAT              = 64'b0_11111111111_1111111111111111111111111111111111111111111111111111;
+    parameter ZERO_FLOAT_NO_SIGN     = 63'b00000000000_0000000000000000000000000000000000000000000000000000;
+    parameter INFINITY_FLOAT_NO_SIGN = 63'b11111111111_0000000000000000000000000000000000000000000000000000;
+    parameter DELAY = 100;
+
+    // IO Replication
+    logic [63:0] a, b, out;
+    opcodes opcode;
+    logic inexact, overflow, underflow, divByZero, invalid;
+
+    // Instance
+    fpu_double dut (.*);
+
+    // Test
+    integer i;
+    initial begin
+
+        $display("Testing Special Value Detection");
+        a = 64'd0;  // Zero
+        #(10);
+        a[62:52] = 11'b111_1111_1111;  // Exponent all 1, Mantissa all 0
+        #(10);
+        a[51:0] = 23'd1;  // Mantissa no longer 0, now a NaN
+        #(10);
+        a[62:52] = 11'b111_1111_1110;  // Representable Exponent
+        #(10);
+
+        $display("Testing ADD/SUB Logic Flow");
+        opcode = ADD;
+        a = NAN_FLOAT;
+        b = NAN_FLOAT;
+        #(DELAY);
+        assert ((out == NAN_FLOAT) & invalid);
+        a = {1'b0, INFINITY_FLOAT_NO_SIGN};
+        #(DELAY);
+        assert ((out == NAN_FLOAT) & invalid);
+        b = {1'b0, ZERO_FLOAT_NO_SIGN};
+        #(DELAY);
+        assert (out == a);
+        b = {1'b0, INFINITY_FLOAT_NO_SIGN};
+        #(DELAY);
+        assert (out == a);
+        b[63] = 1'b1;
+        #(DELAY);
+        assert ((out == NAN_FLOAT) & invalid);
+        opcode = SUB;
+        #(DELAY);
+        assert (out == a);
+        a = 64'd0;
+        #(DELAY);
+        assert (out == {~b[63], b[62:0]});
+        opcode = ADD;
+        #(DELAY);
+        assert (out == b);
+        b = 64'd10;
+        #(DELAY);
+        assert (out == b);
+        a = 64'd10;
+        b = 64'd0;
+        #(DELAY);
+        assert (out == a);
+        b = 64'd10;
+        #(DELAY);
+
+        $display("Testing MUL Logic Flow");
+        opcode = MUL;
+        a = NAN_FLOAT;
+        b = NAN_FLOAT;
+        #(DELAY);
+        assert ((out == NAN_FLOAT) & invalid);
+        a = {1'b0, ZERO_FLOAT_NO_SIGN};
+        #(DELAY);
+        assert ((out == NAN_FLOAT) & invalid);
+        b = {1'b0, INFINITY_FLOAT_NO_SIGN};
+        #(DELAY);
+        assert ((out == NAN_FLOAT) & invalid);
+        b = {1'b0, ZERO_FLOAT_NO_SIGN};
+        #(DELAY);
+        assert (out[62:0] == ZERO_FLOAT_NO_SIGN);
+        a = {1'b0, INFINITY_FLOAT_NO_SIGN};
+        b = {1'b1, INFINITY_FLOAT_NO_SIGN};
+        #(DELAY);
+        assert (out == {1'b1, INFINITY_FLOAT_NO_SIGN});
+        a = {1'b1, 63'd10};
+        #(DELAY);
+        assert (out == {1'b0, INFINITY_FLOAT_NO_SIGN});
+        b = 64'd234;
+        #(DELAY);
+
+        $display("Testing DIV Logic Flow");
+        opcode = DIV;
+        a = NAN_FLOAT;
+        b = NAN_FLOAT;
+        #(DELAY);
+        assert ((out == NAN_FLOAT) & invalid);
+        a = {1'b0, ZERO_FLOAT_NO_SIGN};
+        #(DELAY);
+        assert ((out == NAN_FLOAT) & invalid);
+        b = {1'b0, ZERO_FLOAT_NO_SIGN};
+        #(DELAY);
+        assert ((out == NAN_FLOAT) & invalid);
+        a = {1'b0, INFINITY_FLOAT_NO_SIGN};
+        #(DELAY);
+        assert (out == {1'b0, INFINITY_FLOAT_NO_SIGN});
+        b = {1'b0, INFINITY_FLOAT_NO_SIGN};
+        #(DELAY);
+        assert ((out == NAN_FLOAT) & invalid);
+        a = 64'd123;
+        #(DELAY);
+        assert (out == {1'b0, ZERO_FLOAT_NO_SIGN});
+        b = 64'd123;
+        a = {1'b0, INFINITY_FLOAT_NO_SIGN};
+        #(DELAY);
+        assert (out == {1'b0, INFINITY_FLOAT_NO_SIGN});
+        a = {1'b0, ZERO_FLOAT_NO_SIGN};
+        #(DELAY);
+        assert (out == {1'b0, ZERO_FLOAT_NO_SIGN});
+        a = 64'd123;
+        #(DELAY);
+
+        $display("TEST ADD/SUB UNDERFLOW");
+        a = 64'b0_00000000000_0000000000000000000000000000000000000000000000000111;
+        b = 64'b0_00000000000_0000000000000000000000000000000000000000000000001000;
+        opcode = SUB;
+        #(DELAY);
+        assert (out == {1'b1, ZERO_FLOAT_NO_SIGN} && underflow);
+
+        $display("TEST MUL OVERFLOW/UNDERFLOW");
+        opcode = MUL;
+        a = 64'b0_11111111110_0000000000001111111111111111111111111111111111111111;
+        b = 64'b0_10000000010_1000000000000000000000000000000000000000000000001000;
+        #(DELAY);
+        assert (out == {1'b0, INFINITY_FLOAT_NO_SIGN} && overflow);
+        a = 64'b0_00000000000_0000000000001111111111111111111111111111111111111111;
+        b = 64'b0_00000000111_1000000000000000000000000000000000000000000000001000;
+        #(DELAY);
+        assert (out == {1'b0, ZERO_FLOAT_NO_SIGN} && underflow);
+
+        $display("TEST DIV OVERFLOW/UNDERFLOW");
+        opcode = DIV;
+        a = 64'b0_11111111110_0000000000001111111111111111111111111111111111111111;
+        b = 64'b0_00000000010_1000000000000000000000000000000000000000000000001000;
+        #(DELAY);
+        assert (out == {1'b0, INFINITY_FLOAT_NO_SIGN} && overflow);
+        a = 64'b0_00000000010_1000000000000000000000000000000000000000000000001000;
+        b = 64'b0_11111111110_0000000000001111111111111111111111111111111111111111;
+        #(DELAY);
+        assert (out == {1'b0, ZERO_FLOAT_NO_SIGN} && underflow);
+
+        $stop();
+    end  // Test
+
+endmodule  // fpu_double_tb

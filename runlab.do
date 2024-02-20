@@ -12,12 +12,12 @@ vlog "./Count_Leading_Zeros/*.sv"
 # Call vsim to invoke simulator
 #     Make sure the last item on the line is the name of the
 #     testbench module you want to execute.
-vsim -voptargs="+acc" -t 1ps -lib work fpu_single_tb
+vsim -voptargs="+acc" -t 1ps -lib work fpu_double_tb
 
 # Source the wave do file
 #     This should be the file that sets up the signal window for
 #     the module you are testing.
-do ./ModelSim_Waves/fpu_single_wave.do
+do ./ModelSim_Waves/fpu_double_wave.do
 
 # Set the window types
 view wave
