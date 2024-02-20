@@ -1,8 +1,4 @@
-// opcodes.svh
-
-/*
-Contains typedef for top-level operations
-*/
+// Author: Alex Ghandhi
 
 `ifndef _OPCODES_SVH_
 `define _OPCODES_SVH_
