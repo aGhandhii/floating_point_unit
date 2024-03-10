@@ -410,6 +410,74 @@ module fpu_double_tb ();
         #(DELAY);
         assert (out == {1'b0, ZERO_FLOAT_NO_SIGN} && underflow);
 
+        $display("RANDOM ADDITION");
+        opcode = ADD;
+        for (i = 0; i < 10; i++) begin
+            a[63:32] = $urandom();
+            a[31:0]  = $urandom();
+            b[63:32] = $urandom();
+            b[31:0]  = $urandom();
+            #(DELAY);
+            $display("a: %e\nb: %e\na+b: %e", $bitstoreal(a), $bitstoreal(b),
+                     $bitstoreal(out));
+            if (overflow | underflow | inexact) begin
+                $display("%s%s%s", overflow ? "OVERFLOW " : "",
+                         underflow ? "UNDERFLOW " : " ",
+                         inexact ? "INEXACT" : "");
+            end
+        end
+
+        $display("RANDOM SUBTRACTION");
+        opcode = SUB;
+        for (i = 0; i < 10; i++) begin
+            a[63:32] = $urandom();
+            a[31:0]  = $urandom();
+            b[63:32] = $urandom();
+            b[31:0]  = $urandom();
+            #(DELAY);
+            $display("a: %e\nb: %e\na-b: %e", $bitstoreal(a), $bitstoreal(b),
+                     $bitstoreal(out));
+            if (overflow | underflow | inexact) begin
+                $display("%s%s%s", overflow ? "OVERFLOW " : "",
+                         underflow ? "UNDERFLOW " : " ",
+                         inexact ? "INEXACT" : "");
+            end
+        end
+
+        $display("RANDOM MULTIPLICATION");
+        opcode = MUL;
+        for (i = 0; i < 10; i++) begin
+            a[63:32] = $urandom();
+            a[31:0]  = $urandom();
+            b[63:32] = $urandom();
+            b[31:0]  = $urandom();
+            #(DELAY);
+            $display("a: %e\nb: %e\na*b: %e", $bitstoreal(a), $bitstoreal(b),
+                     $bitstoreal(out));
+            if (overflow | underflow | inexact) begin
+                $display("%s%s%s", overflow ? "OVERFLOW " : "",
+                         underflow ? "UNDERFLOW " : " ",
+                         inexact ? "INEXACT" : "");
+            end
+        end
+
+        $display("RANDOM DIVISION");
+        opcode = DIV;
+        for (i = 0; i < 10; i++) begin
+            a[63:32] = $urandom();
+            a[31:0]  = $urandom();
+            b[63:32] = $urandom();
+            b[31:0]  = $urandom();
+            #(DELAY);
+            $display("a: %e\nb: %e\na/b: %e", $bitstoreal(a), $bitstoreal(b),
+                     $bitstoreal(out));
+            if (overflow | underflow | inexact) begin
+                $display("%s%s%s", overflow ? "OVERFLOW " : "",
+                         underflow ? "UNDERFLOW " : " ",
+                         inexact ? "INEXACT" : "");
+            end
+        end
+
         $stop();
     end  // Test
 

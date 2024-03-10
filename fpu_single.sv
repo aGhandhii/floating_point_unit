@@ -410,6 +410,66 @@ module fpu_single_tb ();
         #(DELAY);
         assert (out == {1'b0, ZERO_FLOAT_NO_SIGN} && underflow);
 
+        $display("RANDOM ADDITION");
+        opcode = ADD;
+        for (i = 0; i < 10; i++) begin
+            a = $urandom();
+            b = $urandom();
+            #(DELAY);
+            $display("a: %e\nb: %e\na+b: %e", $bitstoshortreal(a),
+                     $bitstoshortreal(b), $bitstoshortreal(out));
+            if (overflow | underflow | inexact) begin
+                $display("%s%s%s", overflow ? "OVERFLOW " : "",
+                         underflow ? "UNDERFLOW " : " ",
+                         inexact ? "INEXACT" : "");
+            end
+        end
+
+        $display("RANDOM SUBTRACTION");
+        opcode = SUB;
+        for (i = 0; i < 10; i++) begin
+            a = $urandom();
+            b = $urandom();
+            #(DELAY);
+            $display("a: %e\nb: %e\na-b: %e", $bitstoshortreal(a),
+                     $bitstoshortreal(b), $bitstoshortreal(out));
+            if (overflow | underflow | inexact) begin
+                $display("%s%s%s", overflow ? "OVERFLOW " : "",
+                         underflow ? "UNDERFLOW " : " ",
+                         inexact ? "INEXACT" : "");
+            end
+        end
+
+        $display("RANDOM MULTIPLICATION");
+        opcode = MUL;
+        for (i = 0; i < 10; i++) begin
+            a = $urandom();
+            b = $urandom();
+            #(DELAY);
+            $display("a: %e\nb: %e\na*b: %e", $bitstoshortreal(a),
+                     $bitstoshortreal(b), $bitstoshortreal(out));
+            if (overflow | underflow | inexact) begin
+                $display("%s%s%s", overflow ? "OVERFLOW " : "",
+                         underflow ? "UNDERFLOW " : " ",
+                         inexact ? "INEXACT" : "");
+            end
+        end
+
+        $display("RANDOM DIVISION");
+        opcode = DIV;
+        for (i = 0; i < 10; i++) begin
+            a = $urandom();
+            b = $urandom();
+            #(DELAY);
+            $display("a: %e\nb: %e\na/b: %e", $bitstoshortreal(a),
+                     $bitstoshortreal(b), $bitstoshortreal(out));
+            if (overflow | underflow | inexact) begin
+                $display("%s%s%s", overflow ? "OVERFLOW " : "",
+                         underflow ? "UNDERFLOW " : " ",
+                         inexact ? "INEXACT" : "");
+            end
+        end
+
         $stop();
     end  // Test
 
