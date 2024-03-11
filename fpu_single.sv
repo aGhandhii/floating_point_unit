@@ -432,8 +432,9 @@ module fpu_single_tb ();
             b = a;
             b[25:23] = $urandom();
             #(DELAY);
-            $display("a: %e\nb: %e\na+b: %e", $bitstoshortreal(a),
-                     $bitstoshortreal(b), $bitstoshortreal(out));
+            $display("a: %e\t  %b\nb: %e\t  %b\na+b: %e\t%b", $bitstoshortreal(
+                                                                  a), a,
+                     $bitstoshortreal(b), b, $bitstoshortreal(out), out);
             if (overflow | underflow | inexact) begin
                 $display("%s%s%s", overflow ? "OVERFLOW " : "",
                          underflow ? "UNDERFLOW " : " ",
@@ -462,8 +463,8 @@ module fpu_single_tb ();
             a = $urandom();
             b = $urandom();
             #(DELAY);
-            $display("a: %e\nb: %e\na*b: %e", $bitstoshortreal(a),
-                     $bitstoshortreal(b), $bitstoshortreal(out));
+            $display("a: %e\t%b\nb: %e\t%b\na*b: %e\t%b", $bitstoshortreal(a),
+                     a, $bitstoshortreal(b), b, $bitstoshortreal(out), out);
             if (overflow | underflow | inexact) begin
                 $display("%s%s%s", overflow ? "OVERFLOW " : "",
                          underflow ? "UNDERFLOW " : " ",
@@ -477,8 +478,8 @@ module fpu_single_tb ();
             a = $urandom();
             b = $urandom();
             #(DELAY);
-            $display("a: %e\nb: %e\na/b: %e", $bitstoshortreal(a),
-                     $bitstoshortreal(b), $bitstoshortreal(out));
+            $display("a: %e\t%b\nb: %e\t%b\na/b: %e\t%b", $bitstoshortreal(a),
+                     a, $bitstoshortreal(b), b, $bitstoshortreal(out), out);
             if (overflow | underflow | inexact) begin
                 $display("%s%s%s", overflow ? "OVERFLOW " : "",
                          underflow ? "UNDERFLOW " : " ",
