@@ -410,7 +410,7 @@ module fpu_single_tb ();
         #(DELAY);
         assert (out == {1'b0, ZERO_FLOAT_NO_SIGN} && underflow);
 
-        $display("RANDOM ADDITION");
+        $display("\n\nRANDOM ADDITION");
         opcode = ADD;
         for (i = 0; i < 10; i++) begin
             a = $urandom();
@@ -425,7 +425,23 @@ module fpu_single_tb ();
             end
         end
 
-        $display("RANDOM SUBTRACTION");
+        $display("\n\nRANDOM ADDITION - Similar Exponents");
+        opcode = ADD;
+        for (i = 0; i < 10; i++) begin
+            a = $urandom();
+            b = a;
+            b[25:23] = $urandom();
+            #(DELAY);
+            $display("a: %e\nb: %e\na+b: %e", $bitstoshortreal(a),
+                     $bitstoshortreal(b), $bitstoshortreal(out));
+            if (overflow | underflow | inexact) begin
+                $display("%s%s%s", overflow ? "OVERFLOW " : "",
+                         underflow ? "UNDERFLOW " : " ",
+                         inexact ? "INEXACT" : "");
+            end
+        end
+
+        $display("\n\nRANDOM SUBTRACTION");
         opcode = SUB;
         for (i = 0; i < 10; i++) begin
             a = $urandom();
@@ -440,7 +456,7 @@ module fpu_single_tb ();
             end
         end
 
-        $display("RANDOM MULTIPLICATION");
+        $display("\n\nRANDOM MULTIPLICATION");
         opcode = MUL;
         for (i = 0; i < 10; i++) begin
             a = $urandom();
@@ -455,7 +471,7 @@ module fpu_single_tb ();
             end
         end
 
-        $display("RANDOM DIVISION");
+        $display("\n\nRANDOM DIVISION");
         opcode = DIV;
         for (i = 0; i < 10; i++) begin
             a = $urandom();

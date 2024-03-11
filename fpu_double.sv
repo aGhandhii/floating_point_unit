@@ -410,7 +410,7 @@ module fpu_double_tb ();
         #(DELAY);
         assert (out == {1'b0, ZERO_FLOAT_NO_SIGN} && underflow);
 
-        $display("RANDOM ADDITION");
+        $display("\n\nRANDOM ADDITION");
         opcode = ADD;
         for (i = 0; i < 10; i++) begin
             a[63:32] = $urandom();
@@ -427,7 +427,7 @@ module fpu_double_tb ();
             end
         end
 
-        $display("RANDOM SUBTRACTION");
+        $display("\n\nRANDOM SUBTRACTION");
         opcode = SUB;
         for (i = 0; i < 10; i++) begin
             a[63:32] = $urandom();
@@ -444,7 +444,7 @@ module fpu_double_tb ();
             end
         end
 
-        $display("RANDOM MULTIPLICATION");
+        $display("\n\nRANDOM MULTIPLICATION");
         opcode = MUL;
         for (i = 0; i < 10; i++) begin
             a[63:32] = $urandom();
@@ -461,7 +461,7 @@ module fpu_double_tb ();
             end
         end
 
-        $display("RANDOM DIVISION");
+        $display("\n\nRANDOM DIVISION");
         opcode = DIV;
         for (i = 0; i < 10; i++) begin
             a[63:32] = $urandom();
